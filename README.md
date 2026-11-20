@@ -1,136 +1,146 @@
-# Network Traffic Analysis | Wireshark Protocol Investigation
+# Network Traffic Analysis
 
-![Wireshark](https://img.shields.io/badge/WIRESHARK-087DAF?style=flat-square&logo=wireshark&logoColor=white)
-![TCP IP](https://img.shields.io/badge/TCP%2FIP-0078D4?style=flat-square)
-![DNS](https://img.shields.io/badge/DNS-008C95?style=flat-square)
-![TLS](https://img.shields.io/badge/TLS-1769AA?style=flat-square)
+**Windows Network Defense & Packet Analysis Lab**
 
-**Author:** Alexander Cox  
-**Project type:** Network security lab  
-**Focus:** Packet capture · Protocol inspection · Traffic filtering · Network troubleshooting
+![Wireshark](https://img.shields.io/badge/Wireshark-087DAF?style=flat-square&logo=wireshark&logoColor=white) ![Nmap](https://img.shields.io/badge/Nmap-327FB5?style=flat-square) ![PowerShell](https://img.shields.io/badge/PowerShell-478BF5?style=flat-square&logo=powershell&logoColor=white) ![Windows](https://img.shields.io/badge/Windows-0078D4?style=flat-square)
 
 ## Objective
 
-Capture and examine network traffic with Wireshark to understand how common protocols appear on the wire. The exercise involved analyzing HTTP requests and responses, reviewing DNS resolution, recognizing TLS handshake records, and checking host connectivity in a controlled Windows lab environment.
+Investigate network activity in a Windows lab by identifying active connections and services, configuring firewall controls, and inspecting captured HTTP, TLS, DNS, and ICMP traffic. This repository documents the **complete original lab** with all **21 screenshots** in sequence.
 
 ## Skills Learned
 
-- Capturing and filtering packets in Wireshark.
-- Identifying HTTP request and response patterns.
-- Examining DNS query responses and resolved IP addresses.
-- Recognizing TLS handshake messages and encrypted sessions.
-- Interpreting source and destination addresses in captured traffic.
-- Using Windows networking commands to validate connectivity and local configuration.
+- Identifying IP configuration, listening ports, and associated processes.
+- Auditing and managing Windows services with PowerShell.
+- Creating, modifying, and removing Windows Defender Firewall rules.
+- Performing basic network reconnaissance with Nmap.
+- Filtering and interpreting network packets in Wireshark.
+- Distinguishing between unencrypted HTTP and encrypted TLS traffic.
+- Understanding how DNS resolution and ICMP connectivity tests appear in network investigations.
 
 ## Tools Used
 
 | Tool | Purpose |
 | --- | --- |
-| [Wireshark](https://www.wireshark.org/) | Packet capture, display filtering, and protocol inspection. |
-| [Windows](https://www.microsoft.com/windows) | Lab workstation and network diagnostics. |
-| [Command Prompt](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/windows-commands) | `ping` and `ipconfig` checks. |
-| [TCP/IP](https://www.rfc-editor.org/rfc/rfc9293) | Transport-level connection interpretation. |
+| [Wireshark](https://www.wireshark.org/) | Packet capture, display filters, and protocol inspection |
+| [Nmap](https://nmap.org/) | Host and service reconnaissance |
+| [PowerShell](https://learn.microsoft.com/en-us/powershell/) | Network enumeration, service management, firewall configuration |
+| [Windows Defender Firewall](https://learn.microsoft.com/en-us/windows/security/operating-system-security/network-security/windows-firewall/) | Inbound and outbound access-control rules |
+| [Windows networking utilities](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/windows-commands) | `ipconfig`, `netstat`, `tasklist`, and `ping` |
 
-## Lab Overview
+## Lab Walkthrough
 
-The source screenshots show packet captures taken from a Windows workstation using a Wi-Fi interface. The workstation address shown in the capture is `192.168.0.46`; `192.168.0.1` appears as the local DNS responder in the sampled DNS traffic.
+### 1. Establish a Network Baseline
 
-This is a protocol-analysis and troubleshooting lab. The screenshots do **not** establish a malicious intrusion, credential theft, or a production security incident.
+![Windows IP configuration](screenshots/01-ip-configuration.png)
 
-## Steps
+*Ref 01 — IP configuration.* Used `ipconfig` to identify the Windows host's IPv4 address, subnet mask, and default gateway. This established which local interface and network to investigate.
 
-### 1. Identify the Local Network Configuration
+### 2. Enumerate Connections and Processes
 
-The lab began by recording the Windows workstation's network information so captured source and destination addresses could be interpreted correctly.
+![Listening ports and process IDs](screenshots/02-listening-ports.png)
 
-```powershell
-ipconfig
-```
+*Ref 02 — Active connections.* Ran `netstat -ano` to inspect listening ports, connection states, and process IDs (PIDs). This helps identify potential exposure from locally running services.
 
-![Local IP configuration](screenshots/01-network-configuration.png)
+![Task list with process IDs](screenshots/03-process-inventory.png)
 
-*Figure 1: Windows IP configuration showing the workstation address and default gateway.*
+*Ref 03 — Process inventory.* Used `tasklist` to correlate process names with PIDs, providing context for connections discovered during port enumeration.
 
-### 2. Inspect HTTP Traffic
+### 3. Audit and Manage Windows Services
 
-Wireshark was used to isolate HTTP traffic with the display filter:
+![Windows service inventory](screenshots/04-service-inventory.png)
 
-```wireshark
-http
-```
+*Ref 04 — Service inventory.* Reviewed service names and running/stopped states with `Get-Service` to establish a service-management baseline.
 
-The capture shows HTTP `GET` requests and server responses, including `200 OK` and `301 Moved Permanently`. Source and destination columns help distinguish outbound requests from inbound responses.
+![Service list and Spooler stop](screenshots/05-spooler-stop-command.png)
 
-![HTTP traffic in Wireshark](screenshots/02-http-traffic.png)
+*Ref 05 — Controlled service change.* Located the Print Spooler service and issued `Stop-Service -Name Spooler` as a demonstration of service administration.
 
-*Figure 2: Filtered HTTP traffic showing requests, response codes, source and destination IPs, and packet details.*
+![Spooler stopped status](screenshots/06-spooler-stopped.png)
 
-**Observation:** HTTP protocol data is visible for inspection when traffic is not protected by an additional encryption layer. A `200` response indicates success; `301` indicates a redirect.
+*Ref 06 — Stopped service.* Inspected service status after the stop command, illustrating how an administrator checks the effect of a change.
 
-### 3. Review TLS Handshake Activity
+![PowerShell service checks](screenshots/07-service-verification.png)
 
-The lab screenshots also show TLS protocol records, including TLS 1.2 handshake messages and TLS 1.3 application-data records.
+*Ref 07 — Service verification.* Repeated service-management and status queries in PowerShell to verify the controlled change rather than relying only on command execution.
 
-![TLS handshake records](screenshots/03-tls-handshake.png)
+![Spooler startup configuration and restart](screenshots/08-spooler-restart.png)
 
-*Figure 3: Wireshark records showing TLS 1.2 and TLS 1.3 traffic associated with encrypted connections.*
+*Ref 08 — Service restoration.* Configured the Spooler startup type and issued a start command, demonstrating a return to the previous operational state.
 
-**Observation:** TLS metadata and record types may be visible, while encrypted application contents cannot be read directly from the capture without appropriate keys and authorization.
+![Running service status](screenshots/09-spooler-running.png)
 
-### 4. Analyze DNS Responses
+*Ref 09 — Restored status.* Verified that the service was running again, completing the stop–check–restore workflow.
 
-The DNS display filter was used to narrow the packet list:
+### 4. Configure and Maintain Firewall Rules
 
-```wireshark
-dns
-```
+![Inbound SMB firewall rule](screenshots/10-block-smb-rule.png)
 
-The capture includes DNS responses from `192.168.0.1` to `192.168.0.46`. One response associates `example.com` with IPv4 addresses, demonstrating how DNS supports communication by resolving names into network destinations.
+*Ref 10 — Inbound SMB control.* Created a Windows Defender Firewall rule to block inbound TCP port 445, a commonly exposed SMB service port.
 
-![DNS response analysis](screenshots/04-dns-responses.png)
+![Outbound IP firewall rule](screenshots/11-outbound-ip-rule.png)
 
-*Figure 4: Wireshark DNS filter showing name-resolution responses and returned address records.*
+*Ref 11 — Outbound traffic control.* Created an outbound block rule for a specified test IP address, demonstrating host-based egress filtering.
 
-**Observation:** DNS responses are useful for understanding the domains a host resolves and can support investigations when combined with timestamps and connection evidence. A DNS response alone does not prove that a website was visited.
+![Modify and remove firewall rules](screenshots/12-firewall-rule-maintenance.png)
 
-### 5. Verify Connectivity with ICMP
+*Ref 12 — Rule lifecycle.* Practiced disabling, re-enabling, and removing firewall rules to demonstrate how security controls are maintained and reversed.
 
-Connectivity was checked from Windows using:
+### 5. Perform Network Reconnaissance
 
-```powershell
-ping example.com
-```
+![Nmap command output](screenshots/13-nmap-reconnaissance.png)
 
-![Ping connectivity test](screenshots/05-ping-test.png)
+*Ref 13 — Nmap reconnaissance.* Ran an Nmap scan and examined the reported host/service information. Port-scan results provide a point of comparison with the local connection inventory.
 
-*Figure 5: Successful ICMP echo replies with four packets received and no observed loss in this test.*
+### 6. Generate and Inspect Web Traffic
 
-**Observation:** The test confirms connectivity at that moment, but does not establish that every application-layer service is available.
+![Web page opened for traffic generation](screenshots/14-web-traffic-generation.png)
 
-## Key Findings
+*Ref 14 — Browser-generated traffic.* Accessed a website to produce network activity for subsequent packet inspection.
 
-| Protocol | Evidence in screenshots | Investigative value |
-| --- | --- | --- |
-| HTTP | GET requests, 200 and 301 responses | Understand request/response behavior and web destinations. |
-| TLS | TLS 1.2 handshake messages and TLS 1.3 records | Recognize encrypted sessions and visible metadata. |
-| DNS | DNS responses with domain names and addresses | Investigate name resolution and potential destination relationships. |
-| ICMP | Successful ping replies | Validate basic reachability and latency. |
+![Wireshark HTTP capture](screenshots/15-http-analysis.png)
 
-## Security Takeaways
+*Ref 15 — HTTP analysis.* Applied an HTTP display filter in Wireshark and reviewed requests, responses, and protocol metadata to identify web exchanges.
 
-- Protocol filters make packet captures easier to investigate without losing the broader traffic context.
-- HTTP traffic may expose application details; encrypted HTTPS/TLS reduces visibility into payload contents.
-- DNS analysis can provide leads, but meaningful conclusions require correlation with other network evidence.
-- Proper interpretation of packet direction, timestamps, and response codes prevents incorrect conclusions.
+![Wireshark TLS records](screenshots/16-tls-analysis.png)
 
-## Conclusion
+*Ref 16 — TLS inspection.* Examined TLS handshake and application-data records. TLS packet metadata remains observable even though the encrypted payload is not readable in a normal capture.
 
-This exercise strengthened my practical network analysis skills by using Wireshark to interpret HTTP, TLS, and DNS traffic and Windows tools to verify connectivity. The project demonstrates packet-inspection fundamentals relevant to network troubleshooting, SOC monitoring, and incident investigation.
+![Wireshark DNS packets](screenshots/17-dns-analysis.png)
 
-## Evidence & Source
+*Ref 17 — DNS analysis.* Used the DNS filter to inspect name-resolution queries and responses, connecting domain lookups to the observed web traffic.
 
-The screenshots were extracted from my original **Lab 1 Network defense** document. The original lab also contains Windows service and firewall configuration exercises, which are outside this project's primary protocol-analysis focus.
+### 7. Investigate ICMP and Firewall Behavior
+
+![Ping connectivity test](screenshots/18-icmp-connectivity.png)
+
+*Ref 18 — ICMP baseline.* Ran `ping` against a domain and reviewed replies, latency, and packet loss as a basic connectivity test.
+
+![Create ICMP firewall rule](screenshots/19-block-icmp-rule.png)
+
+*Ref 19 — ICMP filtering rule.* Created an inbound ICMPv4 block rule. The screenshot documents successful rule creation, not a separate packet-drop validation.
+
+![Remove ICMP firewall rule](screenshots/20-remove-icmp-rule.png)
+
+*Ref 20 — Cleanup.* Removed the temporary ICMP rule to restore the lab's prior configuration.
+
+### 8. Review the Full Packet Capture
+
+![Wireshark packet capture overview](screenshots/21-wireshark-capture-overview.png)
+
+*Ref 21 — Capture overview.* Reviewed the broader list of captured packets and their timing, source/destination information, and protocols to place filtered HTTP, TLS, and DNS observations in context.
+
+## Key Takeaways
+
+- Host-level network visibility improves when ports, PIDs, services, and packet captures are examined together.
+- Firewall rules should be documented and their lifecycle managed carefully, including test-rule removal.
+- Wireshark display filters help isolate protocols, while the full capture provides additional investigative context.
+- This was a **hands-on lab**; successful rule creation and protocol inspection should not be represented as enterprise-scale security validation.
+
+## Evidence
+
+All 21 screenshots are supplied in the [`screenshots/`](screenshots/) directory and linked above in the order of the original lab document. Images document actions observed in the lab; findings and interpretations are limited to what the screenshots demonstrate.
 
 ---
 
-**Alexander Cox** · [LinkedIn](https://www.linkedin.com/in/alexandercox25/) · [GitHub Portfolio](https://github.com/KerberosAC)
+**Author:** [Alexander Cox](https://www.linkedin.com/in/alexandercox25/) · [GitHub Portfolio](https://github.com/KerberosAC)
