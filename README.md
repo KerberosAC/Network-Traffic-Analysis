@@ -139,7 +139,7 @@ Investigate network activity in a Windows lab by identifying active connections 
 
 ## Evidence
 
-All 21 screenshots are supplied in the [`screenshots/`](screenshots/) directory and linked above in the order of the original lab document. Images document actions observed in the lab; findings and interpretations are limited to what the screenshots demonstrate.
+All 21 screenshots are supplied in the [`screenshots/`](screenshots/) directory and linked above.
 
 ---
 
